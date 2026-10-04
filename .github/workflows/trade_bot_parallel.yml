@@ -4,8 +4,6 @@ on:
   schedule:
     # 10:00 น. เวลาไทย (UTC+7) = 03:00 UTC ทุกวัน
     - cron: '0 3 * * *'
-
-  # เปิดให้กดปุ่ม "Run workflow" สั่งรันเทสต์ผ่านหน้าเว็บ GitHub ได้ทันที
   workflow_dispatch:
 
 jobs:
@@ -13,15 +11,32 @@ jobs:
     name: Run ${{ matrix.scheme_name }}
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false # ถ้าโมเดลใด Error อีก 2 ตัวยังทำงานต่อจนจบ
+      fail-fast: false
       matrix:
         include:
           - scheme_name: "expanding_window"
             folder_dir: "Expanding_Window/webull_live_trading"
+            app_key: "${{ secrets.EXPANDING_WEBULL_APP_KEY }}"
+            app_secret: "${{ secrets.EXPANDING_WEBULL_APP_SECRET }}"
+            account_id: "${{ secrets.EXPANDING_WEBULL_ACCOUNT_ID }}"
+            bot_token: "${{ secrets.EXPANDING_TELEGRAM_BOT_TOKEN }}"
+            chat_id: "${{ secrets.EXPANDING_TELEGRAM_CHAT_ID }}"
+
           - scheme_name: "sliding_window"
             folder_dir: "Sliding_Window/webull_live_trading"
+            app_key: "${{ secrets.SLIDING_WEBULL_APP_KEY }}"
+            app_secret: "${{ secrets.SLIDING_WEBULL_APP_SECRET }}"
+            account_id: "${{ secrets.SLIDING_WEBULL_ACCOUNT_ID }}"
+            bot_token: "${{ secrets.SLIDING_TELEGRAM_BOT_TOKEN }}"
+            chat_id: "${{ secrets.SLIDING_TELEGRAM_CHAT_ID }}"
+
           - scheme_name: "single_holdout"
             folder_dir: "Single_Holdout/webull_live_trading"
+            app_key: "${{ secrets.SINGLE_WEBULL_APP_KEY }}"
+            app_secret: "${{ secrets.SINGLE_WEBULL_APP_SECRET }}"
+            account_id: "${{ secrets.SINGLE_WEBULL_ACCOUNT_ID }}"
+            bot_token: "${{ secrets.SINGLE_TELEGRAM_BOT_TOKEN }}"
+            chat_id: "${{ secrets.SINGLE_TELEGRAM_CHAT_ID }}"
 
     steps:
       - name: Checkout repository
@@ -32,7 +47,6 @@ jobs:
         with:
           python-version: "3.11"
           cache: "pip"
-          # ชี้เป้า requirements.txt ในแต่ละโฟลเดอร์ย่อยเพื่อแคชไลบรารี
           cache-dependency-path: "${{ matrix.folder_dir }}/requirements.txt"
 
       - name: Install dependencies
@@ -44,12 +58,12 @@ jobs:
       - name: Execute Live Trading (${{ matrix.scheme_name }})
         working-directory: ${{ matrix.folder_dir }}
         env:
-          WEBULL_APP_KEY: ${{ secrets.WEBULL_APP_KEY }}
-          WEBULL_APP_SECRET: ${{ secrets.WEBULL_APP_SECRET }}
-          WEBULL_ACCOUNT_ID: ${{ secrets.WEBULL_ACCOUNT_ID }}
+          # แมปค่าประจำแต่ละ Scheme เข้าสู่ Environment Variable ชื่อเดิมที่สคริปต์ Python เรียกหา
+          WEBULL_APP_KEY: ${{ matrix.app_key }}
+          WEBULL_APP_SECRET: ${{ matrix.app_secret }}
+          WEBULL_ACCOUNT_ID: ${{ matrix.account_id }}
           WEBULL_ENV: "sandbox"
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ matrix.bot_token }}
+          TELEGRAM_CHAT_ID: ${{ matrix.chat_id }}
         run: |
           python run_live.py --scheme ${{ matrix.scheme_name }} --algo ppo --execute
-          
