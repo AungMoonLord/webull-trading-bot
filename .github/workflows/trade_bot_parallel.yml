@@ -4,42 +4,12 @@ on:
   schedule:
     # 22:00 น. เวลาไทย (UTC+7) = 15:00 UTC ทุกวัน
     - cron: '0 15 * * *'
-
-  # เปิดให้กดปุ่มสั่งรันด้วยมือผ่านหน้าเว็บ GitHub ได้ตามปกติ
   workflow_dispatch:
 
 jobs:
-  run-trading-schemes:
-    name: Run ${{ matrix.scheme_name }}
+  run-expanding:
+    name: Run expanding_window
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - scheme_name: "expanding_window"
-            folder_dir: "Expanding_Window/webull_live_trading"
-            app_key: "${{ secrets.EXPANDING_WEBULL_APP_KEY }}"
-            app_secret: "${{ secrets.EXPANDING_WEBULL_APP_SECRET }}"
-            account_id: "${{ secrets.EXPANDING_WEBULL_ACCOUNT_ID }}"
-            bot_token: "${{ secrets.EXPANDING_TELEGRAM_BOT_TOKEN }}"
-            chat_id: "${{ secrets.EXPANDING_TELEGRAM_CHAT_ID }}"
-
-          - scheme_name: "sliding_window"
-            folder_dir: "Sliding_Window/webull_live_trading"
-            app_key: "${{ secrets.SLIDING_WEBULL_APP_KEY }}"
-            app_secret: "${{ secrets.SLIDING_WEBULL_APP_SECRET }}"
-            account_id: "${{ secrets.SLIDING_WEBULL_ACCOUNT_ID }}"
-            bot_token: "${{ secrets.SLIDING_TELEGRAM_BOT_TOKEN }}"
-            chat_id: "${{ secrets.SLIDING_TELEGRAM_CHAT_ID }}"
-
-          - scheme_name: "single_holdout"
-            folder_dir: "Single_Holdout/webull_live_trading"
-            app_key: "${{ secrets.SINGLE_WEBULL_APP_KEY }}"
-            app_secret: "${{ secrets.SINGLE_WEBULL_APP_SECRET }}"
-            account_id: "${{ secrets.SINGLE_WEBULL_ACCOUNT_ID }}"
-            bot_token: "${{ secrets.SINGLE_TELEGRAM_BOT_TOKEN }}"
-            chat_id: "${{ secrets.SINGLE_TELEGRAM_CHAT_ID }}"
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -49,23 +19,86 @@ jobs:
         with:
           python-version: "3.11"
           cache: "pip"
-          cache-dependency-path: "${{ matrix.folder_dir }}/requirements.txt"
+          cache-dependency-path: "Expanding_Window/webull_live_trading/requirements.txt"
 
       - name: Install dependencies
-        working-directory: ${{ matrix.folder_dir }}
+        working-directory: Expanding_Window/webull_live_trading
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Execute Live Trading (${{ matrix.scheme_name }})
-        working-directory: ${{ matrix.folder_dir }}
+      - name: Execute Live Trading
+        working-directory: Expanding_Window/webull_live_trading
         env:
-          # แมปค่าประจำแต่ละ Scheme เข้าสู่ Environment Variable ชื่อเดิมที่สคริปต์ Python เรียกหา
-          WEBULL_APP_KEY: ${{ matrix.app_key }}
-          WEBULL_APP_SECRET: ${{ matrix.app_secret }}
-          WEBULL_ACCOUNT_ID: ${{ matrix.account_id }}
+          WEBULL_APP_KEY: ${{ secrets.EXPANDING_WEBULL_APP_KEY }}
+          WEBULL_APP_SECRET: ${{ secrets.EXPANDING_WEBULL_APP_SECRET }}
+          WEBULL_ACCOUNT_ID: ${{ secrets.EXPANDING_WEBULL_ACCOUNT_ID }}
           WEBULL_ENV: "sandbox"
-          TELEGRAM_BOT_TOKEN: ${{ matrix.bot_token }}
-          TELEGRAM_CHAT_ID: ${{ matrix.chat_id }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.EXPANDING_TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.EXPANDING_TELEGRAM_CHAT_ID }}
         run: |
-          python run_live.py --scheme ${{ matrix.scheme_name }} --algo ppo --execute
+          python run_live.py --scheme expanding_window --algo ppo --execute
+
+  run-sliding:
+    name: Run sliding_window
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: "Sliding_Window/webull_live_trading/requirements.txt"
+
+      - name: Install dependencies
+        working-directory: Sliding_Window/webull_live_trading
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Execute Live Trading
+        working-directory: Sliding_Window/webull_live_trading
+        env:
+          WEBULL_APP_KEY: ${{ secrets.SLIDING_WEBULL_APP_KEY }}
+          WEBULL_APP_SECRET: ${{ secrets.SLIDING_WEBULL_APP_SECRET }}
+          WEBULL_ACCOUNT_ID: ${{ secrets.SLIDING_WEBULL_ACCOUNT_ID }}
+          WEBULL_ENV: "sandbox"
+          TELEGRAM_BOT_TOKEN: ${{ secrets.SLIDING_TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.SLIDING_TELEGRAM_CHAT_ID }}
+        run: |
+          python run_live.py --scheme sliding_window --algo ppo --execute
+
+  run-single:
+    name: Run single_holdout
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: "Single_Holdout/webull_live_trading/requirements.txt"
+
+      - name: Install dependencies
+        working-directory: Single_Holdout/webull_live_trading
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Execute Live Trading
+        working-directory: Single_Holdout/webull_live_trading
+        env:
+          WEBULL_APP_KEY: ${{ secrets.SINGLE_WEBULL_APP_KEY }}
+          WEBULL_APP_SECRET: ${{ secrets.SINGLE_WEBULL_APP_SECRET }}
+          WEBULL_ACCOUNT_ID: ${{ secrets.SINGLE_WEBULL_ACCOUNT_ID }}
+          WEBULL_ENV: "sandbox"
+          TELEGRAM_BOT_TOKEN: ${{ secrets.SINGLE_TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.SINGLE_TELEGRAM_CHAT_ID }}
+        run: |
+          python run_live.py --scheme single_holdout --algo ppo --execute
