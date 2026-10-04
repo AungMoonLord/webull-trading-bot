@@ -1,0 +1,55 @@
+name: Webull Trading Bot (Daily 10:00 AM Parallel)
+
+on:
+  schedule:
+    # 10:00 น. เวลาไทย (UTC+7) = 03:00 UTC ทุกวัน
+    - cron: '0 3 * * *'
+
+  # เปิดให้กดปุ่ม "Run workflow" สั่งรันเทสต์ผ่านหน้าเว็บ GitHub ได้ทันที
+  workflow_dispatch:
+
+jobs:
+  run-trading-schemes:
+    name: Run ${{ matrix.scheme_name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false # ถ้าโมเดลใด Error อีก 2 ตัวยังทำงานต่อจนจบ
+      matrix:
+        include:
+          - scheme_name: "expanding_window"
+            folder_dir: "Expanding_Window/webull_live_trading"
+          - scheme_name: "sliding_window"
+            folder_dir: "Sliding_Window/webull_live_trading"
+          - scheme_name: "single_holdout"
+            folder_dir: "Single_Holdout/webull_live_trading"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          # ชี้เป้า requirements.txt ในแต่ละโฟลเดอร์ย่อยเพื่อแคชไลบรารี
+          cache-dependency-path: "${{ matrix.folder_dir }}/requirements.txt"
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.folder_dir }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Execute Live Trading (${{ matrix.scheme_name }})
+        working-directory: ${{ matrix.folder_dir }}
+        env:
+          WEBULL_APP_KEY: ${{ secrets.WEBULL_APP_KEY }}
+          WEBULL_APP_SECRET: ${{ secrets.WEBULL_APP_SECRET }}
+          WEBULL_ACCOUNT_ID: ${{ secrets.WEBULL_ACCOUNT_ID }}
+          WEBULL_ENV: "sandbox"
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python run_live.py --scheme ${{ matrix.scheme_name }} --algo ppo --execute
+          

@@ -1,0 +1,35 @@
+webull-trading-bot/                                <--- Root ของ Git Repository
+│
+├── .github/
+│   └── workflows/
+│       └── trade_bot_parallel.yml                 <--- วางไฟล์ Workflow ที่นี่
+│
+├── Expanding_Window/                              <--- โฟลเดอร์ Scheme ที่ 1
+│   └── webull_live_trading/
+│       ├── schemes/
+│       │   └── expanding_window/
+│       │       ├── models/ppo/fold_5/best_model.zip
+│       │       └── state/scaling_stats.json
+│       ├── run_live.py
+│       ├── requirements.txt
+│       └── ...
+│
+├── Single_Holdout/                                <--- โฟลเดอร์ Scheme ที่ 2
+│   └── webull_live_trading/
+│       ├── schemes/
+│       │   └── single_holdout/
+│       │       ├── models/ppo/fold_5/best_model.zip
+│       │       └── state/scaling_stats.json
+│       ├── run_live.py
+│       ├── requirements.txt
+│       └── ...
+│
+└── Sliding_Window/                               <--- โฟลเดอร์ Scheme ที่ 3
+    └── webull_live_trading/
+        ├── schemes/
+        │   └── sliding_window/
+        │       ├── models/ppo/fold_5/best_model.zip
+        │       └── state/scaling_stats.json
+        ├── run_live.py
+        ├── requirements.txt
+        └── ...
