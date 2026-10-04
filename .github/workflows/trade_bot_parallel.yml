@@ -1,9 +1,11 @@
-name: Webull Trading Bot (Daily 10:00 AM Parallel)
+name: Webull Trading Bot (Daily 10:00 PM Parallel)
 
 on:
   schedule:
-    # 10:00 น. เวลาไทย (UTC+7) = 03:00 UTC ทุกวัน
-    - cron: '0 3 * * *'
+    # 22:00 น. เวลาไทย (UTC+7) = 15:00 UTC ทุกวัน
+    - cron: '0 15 * * *'
+
+  # เปิดให้กดปุ่มสั่งรันด้วยมือผ่านหน้าเว็บ GitHub ได้ตามปกติ
   workflow_dispatch:
 
 jobs:
